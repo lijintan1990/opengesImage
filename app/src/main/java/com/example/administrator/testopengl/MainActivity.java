@@ -83,11 +83,10 @@ public class MainActivity extends AppCompatActivity {
         // 顶点坐标系，需要显示整个图就需要计算这个，假设图片是宽高比是700/100,
         // 要全部显示的话就需要计算.顶点坐标系范围是[-1,1]，原点(0,0)在中间
         private static final float[] VERTEX = {   // in counterclockwise order:
-                0.7f, 1, 0,   // top right
                 -0.7f, 1, 0,  // top left
                 -0.7f, -1, 0, // bottom left
+                0.7f, 1, 0,   // top right
                 0.7f, -1, 0,  // bottom righ
-                0.7f, 1, 0,
         };
         private static final short[] VERTEX_INDEX = {
                 0, 1, 2, 0, 2, 3
@@ -96,11 +95,10 @@ public class MainActivity extends AppCompatActivity {
         //就需要修改这里的坐标，纹理坐标的范围是[0-1],左上角为原点(0,0).
         //这个坐标系应该要和顶点坐标系一一对应，不然就会出现倒置或者显示部分的问题
         private static final float[] TEX_VERTEX = {   // in clockwise order:
-                1f, 0,  // top right
                 0, 0,  // top left
                 0, 1,  // bottom left
+                1f, 0,  // top right
                 1f, 1,  //bottom right
-                1f, 0,
         };
 
         //不做任何变换下的原始矩阵
@@ -229,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
             int GL_TRIANGLE_FAN    //将传入的顶点作为扇面绘制，ABCDEF绘制ABC、ACD、ADE、AEF四个三角形
             int GL_TRIANGLE_STRIP   //将传入的顶点作为三角条带绘制，ABCDEF绘制ABC,BCD,CDE,DEF四个三角形
             */
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 5);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
         }
 
         void destroy() {
