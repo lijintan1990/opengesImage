@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/testopengl.iml" filepath="$PROJECT_DIR$/testopengl.iml" />
+      <module fileurl="file://$PROJECT_DIR$/opengesImage.iml" filepath="$PROJECT_DIR$/opengesImage.iml" />
     </modules>
   </component>
 </project>

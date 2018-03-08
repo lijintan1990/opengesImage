@@ -80,7 +80,8 @@ public class MainActivity extends AppCompatActivity {
                         "void main() {" +
                         "  gl_FragColor = texture2D(s_texture, v_texCoord);" +
                         "}";
-
+        // 顶点坐标系，需要显示整个图就需要计算这个，假设图片是宽高比是700/100,
+        // 要全部显示的话就需要计算.顶点坐标系范围是[-1,1]，原点(0,0)在中间
         private static final float[] VERTEX = {   // in counterclockwise order:
                 0.7f, 1, 0,   // top right
                 -0.7f, 1, 0,  // top left
@@ -90,24 +91,29 @@ public class MainActivity extends AppCompatActivity {
         private static final short[] VERTEX_INDEX = {
                 0, 1, 2, 0, 2, 3
         };
+        //这个是纹理坐标系，表示要显示的纹理，这里是全部都显示了，如果需要剪裁，
+        //就需要修改这里的坐标，纹理坐标的范围是[0-1],左上角为原点(0,0).
+        //这个坐标系应该要和顶点坐标系一一对应，不然就会出现倒置或者显示部分的问题
         private static final float[] TEX_VERTEX = {   // in clockwise order:
-                1f, 0,  // bottom right
-                0, 0,  // bottom left
-                0, 1,  // top left
-                1f, 1,  // top right
+                1f, 0,  // top right
+                0, 0,  // top left
+                0, 1,  // bottom left
+                1f, 1,  //bottom right
         };
 
-        private final Context mContext;
-        private final FloatBuffer mVertexBuffer;
-        private final FloatBuffer mTexVertexBuffer;
-        private final ShortBuffer mVertexIndexBuffer;
-        //private final float[] mMVPMatrix = new float[16];
+        //不做任何变换下的原始矩阵
         private float[] mMVPMatrix= {
                 1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
                 0, 0, 0, 1
         };
+        private final Context mContext;
+        private final FloatBuffer mVertexBuffer;
+        private final FloatBuffer mTexVertexBuffer;
+        private final ShortBuffer mVertexIndexBuffer;
+        //private final float[] mMVPMatrix = new float[16];
+
 
         private int mProgram;
         private int mPositionHandle;
