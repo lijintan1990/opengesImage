@@ -88,11 +88,14 @@ public class MainActivity extends AppCompatActivity {
                 0.7f, 1, 0,   // top right
                 0.7f, -1, 0,  // bottom righ
         };
+        /*
+        //这个是给glDrawElements用的
         private static final short[] VERTEX_INDEX = {
                 0, 1, 2, 0, 2, 3
-        };
+        };*/
+
         //这个是纹理坐标系，表示要显示的纹理，这里是全部都显示了，如果需要剪裁，
-        //就需要修改这里的坐标，纹理坐标的范围是[0-1],左上角为原点(0,0).
+        //就需要修改这里的坐标，纹理坐标的范围是[0-1],左下角为原点(0,0).
         //这个坐标系应该要和顶点坐标系一一对应，不然就会出现倒置或者显示部分的问题
         private static final float[] TEX_VERTEX = {   // in clockwise order:
                 0, 0,  // top left
@@ -168,8 +171,9 @@ public class MainActivity extends AppCompatActivity {
             mTexCoordHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord");
             mMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
             mTexSamplerHandle = GLES20.glGetUniformLocation(mProgram, "s_texture");
-
+            //启用顶点句柄
             GLES20.glEnableVertexAttribArray(mPositionHandle);
+            //准备顶点数据
             GLES20.glVertexAttribPointer(mPositionHandle, 3, GLES20.GL_FLOAT, false,
                     12, mVertexBuffer);
 
@@ -182,7 +186,9 @@ public class MainActivity extends AppCompatActivity {
             mTexName = texNames[0];
             Bitmap bitmap = BitmapFactory.decodeResource(mContext.getResources(),
                     R.drawable.p_300px);
+            // 激活文理单元，GL_TEXTURE0代表单元0，以此类推
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+            //绑定纹理到纹理单元
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexName);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER,
                     GLES20.GL_LINEAR);
@@ -209,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
             GLES20.glUniformMatrix4fv(mMatrixHandle, 1, false, mMVPMatrix, 0);
+            //把选定的纹理单元传给片段着色器中的s_texture
             GLES20.glUniform1i(mTexSamplerHandle, 0);
 
             // 用 glDrawElements 来绘制，mVertexIndexBuffer 指定了顶点绘制顺序
@@ -227,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
             int GL_TRIANGLE_FAN    //将传入的顶点作为扇面绘制，ABCDEF绘制ABC、ACD、ADE、AEF四个三角形
             int GL_TRIANGLE_STRIP   //将传入的顶点作为三角条带绘制，ABCDEF绘制ABC,BCD,CDE,DEF四个三角形
             */
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);//4是定点坐标个数
         }
 
         void destroy() {
