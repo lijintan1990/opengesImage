@@ -86,7 +86,8 @@ public class MainActivity extends AppCompatActivity {
                 0.7f, 1, 0,   // top right
                 -0.7f, 1, 0,  // top left
                 -0.7f, -1, 0, // bottom left
-                0.7f, -1, 0,  // bottom right
+                0.7f, -1, 0,  // bottom righ
+                0.7f, 1, 0,
         };
         private static final short[] VERTEX_INDEX = {
                 0, 1, 2, 0, 2, 3
@@ -99,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 0, 0,  // top left
                 0, 1,  // bottom left
                 1f, 1,  //bottom right
+                1f, 0,
         };
 
         //不做任何变换下的原始矩阵
@@ -111,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         private final Context mContext;
         private final FloatBuffer mVertexBuffer;
         private final FloatBuffer mTexVertexBuffer;
-        private final ShortBuffer mVertexIndexBuffer;
+        //private final ShortBuffer mVertexIndexBuffer;
         //private final float[] mMVPMatrix = new float[16];
 
 
@@ -129,13 +131,14 @@ public class MainActivity extends AppCompatActivity {
                     .asFloatBuffer()
                     .put(VERTEX);
             mVertexBuffer.position(0);
-
+/*
             mVertexIndexBuffer = ByteBuffer.allocateDirect(VERTEX_INDEX.length * 2)
                     .order(ByteOrder.nativeOrder())
                     .asShortBuffer()
                     .put(VERTEX_INDEX);
-            mVertexIndexBuffer.position(0);
 
+            mVertexIndexBuffer.position(0);
+*/
             mTexVertexBuffer = ByteBuffer.allocateDirect(TEX_VERTEX.length * 4)
                     .order(ByteOrder.nativeOrder())
                     .asFloatBuffer()
@@ -211,8 +214,22 @@ public class MainActivity extends AppCompatActivity {
             GLES20.glUniform1i(mTexSamplerHandle, 0);
 
             // 用 glDrawElements 来绘制，mVertexIndexBuffer 指定了顶点绘制顺序
-            GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
-                    GLES20.GL_UNSIGNED_SHORT, mVertexIndexBuffer);
+            //GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
+            //        GLES20.GL_UNSIGNED_SHORT, mVertexIndexBuffer);
+
+            /*
+            GLES20.glDrawArrays的第一个参数表示绘制方式，第二个参数表示偏移量，第三个参数表示顶点个数。
+            绘制方式有：
+
+            int GL_POINTS       //将传入的顶点坐标作为单独的点绘制
+            int GL_LINES        //将传入的坐标作为单独线条绘制，ABCDEFG六个顶点，绘制AB、CD、EF三条线
+            int GL_LINE_STRIP   //将传入的顶点作为折线绘制，ABCD四个顶点，绘制AB、BC、CD三条线
+            int GL_LINE_LOOP    //将传入的顶点作为闭合折线绘制，ABCD四个顶点，绘制AB、BC、CD、DA四条线。
+            int GL_TRIANGLES    //将传入的顶点作为单独的三角形绘制，ABCDEF绘制ABC,DEF两个三角形
+            int GL_TRIANGLE_FAN    //将传入的顶点作为扇面绘制，ABCDEF绘制ABC、ACD、ADE、AEF四个三角形
+            int GL_TRIANGLE_STRIP   //将传入的顶点作为三角条带绘制，ABCDEF绘制ABC,BCD,CDE,DEF四个三角形
+            */
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 5);
         }
 
         void destroy() {
