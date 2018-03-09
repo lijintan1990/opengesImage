@@ -9,6 +9,7 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -68,17 +69,22 @@ public class MainActivity extends AppCompatActivity {
                 "uniform mat4 uMVPMatrix;" +
                         "attribute vec4 vPosition;" +
                         "attribute vec2 a_texCoord;" +
+                        "attribute vec2 a_texCoord2;"+
                         "varying vec2 v_texCoord;" +
+                        "varying vec2 v_texCoord2;" +
                         "void main() {" +
                         "  gl_Position = uMVPMatrix * vPosition;" +
                         "  v_texCoord = a_texCoord;" +
+                        "  v_texCoord2 = a_texCoord2;" +
                         "}";
         private static final String FRAGMENT_SHADER =
                 "precision mediump float;" +
                         "varying vec2 v_texCoord;" +
+                        "varying vec2 v_texCoord2;" +
                         "uniform sampler2D s_texture;" +
+                        "uniform sampler2D s_texture2;" +
                         "void main() {" +
-                        "  gl_FragColor = texture2D(s_texture, v_texCoord);" +
+                        "gl_FragColor = texture2D(s_texture, v_texCoord) + texture2D(s_texture2, v_texCoord2);" +
                         "}";
         // 顶点坐标系，需要显示整个图就需要计算这个，假设图片是宽高比是700/100,
         // 要全部显示的话就需要计算.顶点坐标系范围是[-1,1]，原点(0,0)在中间
@@ -122,7 +128,9 @@ public class MainActivity extends AppCompatActivity {
         private int mPositionHandle;
         private int mMatrixHandle;
         private int mTexCoordHandle;
+        private int mTexCoordHandle2;
         private int mTexSamplerHandle;
+        private int mTexSamplerHandle2;
         private int mTexName;
 
         MyRenderer(final Context context) {
@@ -147,47 +155,23 @@ public class MainActivity extends AppCompatActivity {
             mTexVertexBuffer.position(0);
         }
 
-        static int loadShader(int type, String shaderCode) {
+        int loadShader(int type, String shaderCode) {
             int shader = GLES20.glCreateShader(type);
             GLES20.glShaderSource(shader, shaderCode);
             GLES20.glCompileShader(shader);
+            checkGLError("glComileShader");
             return shader;
         }
 
-        @Override
-        public void onSurfaceCreated(GL10 unused, EGLConfig config) {
-            GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-            mProgram = GLES20.glCreateProgram();
-            int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, VERTEX_SHADER);
-            int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
-            GLES20.glAttachShader(mProgram, vertexShader);
-            GLES20.glAttachShader(mProgram, fragmentShader);
-            GLES20.glLinkProgram(mProgram);
-
-            GLES20.glUseProgram(mProgram);
-
-            mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
-            mTexCoordHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord");
-            mMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
-            mTexSamplerHandle = GLES20.glGetUniformLocation(mProgram, "s_texture");
-            //启用顶点句柄
-            GLES20.glEnableVertexAttribArray(mPositionHandle);
-            //准备顶点数据
-            GLES20.glVertexAttribPointer(mPositionHandle, 3, GLES20.GL_FLOAT, false,
-                    12, mVertexBuffer);
-
-            GLES20.glEnableVertexAttribArray(mTexCoordHandle);
-            GLES20.glVertexAttribPointer(mTexCoordHandle, 2, GLES20.GL_FLOAT, false, 0,
-                    mTexVertexBuffer);
-
+        int loadTexture(int resourceId, int textrueNum)
+        {
             int[] texNames = new int[1];
             GLES20.glGenTextures(1, texNames, 0);
             mTexName = texNames[0];
             Bitmap bitmap = BitmapFactory.decodeResource(mContext.getResources(),
-                    R.drawable.p_300px);
+                    /*R.drawable.p_300px*/resourceId);
             // 激活文理单元，GL_TEXTURE0代表单元0，以此类推
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+            GLES20.glActiveTexture(/*GLES20.GL_TEXTURE0*/textrueNum);
             //绑定纹理到纹理单元
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexName);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER,
@@ -200,6 +184,58 @@ public class MainActivity extends AppCompatActivity {
                     GLES20.GL_REPEAT);
             GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
             bitmap.recycle();
+            return 0;
+        }
+
+        public static void checkGLError(String op){
+            int error;
+            //错误代码不为0, 就打印错误日志, 并抛出异常
+            if( (error = GLES20.glGetError()) != GLES20.GL_NO_ERROR ){
+                Log.e("ES20_ERROR", op + ": glError " + error);
+            }
+        }
+
+        @Override
+        public void onSurfaceCreated(GL10 unused, EGLConfig config) {
+            GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+            mProgram = GLES20.glCreateProgram();
+            int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, VERTEX_SHADER);
+            int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
+            GLES20.glAttachShader(mProgram, vertexShader);
+            checkGLError("glAttachShader");
+            GLES20.glAttachShader(mProgram, fragmentShader);
+            checkGLError("glAttachShader");
+            GLES20.glLinkProgram(mProgram);
+            checkGLError("glLinkProgram");
+            GLES20.glUseProgram(mProgram);
+            checkGLError("glUseProgram");
+
+            mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
+            mTexCoordHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord");
+            mMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+            mTexSamplerHandle = GLES20.glGetUniformLocation(mProgram, "s_texture");
+
+            mTexCoordHandle2 = GLES20.glGetAttribLocation(mProgram, "a_texCoord2");
+            mTexSamplerHandle2 = GLES20.glGetUniformLocation(mProgram, "s_texture2");
+            //启用顶点句柄
+            GLES20.glEnableVertexAttribArray(mPositionHandle);
+            //准备顶点数据
+            GLES20.glVertexAttribPointer(mPositionHandle, 3, GLES20.GL_FLOAT, false,
+                    12, mVertexBuffer);
+
+            GLES20.glEnableVertexAttribArray(mTexCoordHandle);
+            GLES20.glVertexAttribPointer(mTexCoordHandle, 2, GLES20.GL_FLOAT, false, 0,
+                    mTexVertexBuffer);
+
+            GLES20.glEnableVertexAttribArray(mTexCoordHandle2);
+            GLES20.glVertexAttribPointer(mTexCoordHandle2, 2, GLES20.GL_FLOAT, false, 0,
+                    mTexVertexBuffer);
+
+            //加载第一个texture
+            loadTexture(R.drawable.p_300px, GLES20.GL_TEXTURE0);
+            //加载第二texture
+            loadTexture(R.drawable.logo, GLES20.GL_TEXTURE1);
         }
 
         @Override
@@ -217,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
             GLES20.glUniformMatrix4fv(mMatrixHandle, 1, false, mMVPMatrix, 0);
             //把选定的纹理单元传给片段着色器中的s_texture
             GLES20.glUniform1i(mTexSamplerHandle, 0);
-
+            GLES20.glUniform1i(mTexSamplerHandle2, 1);
             // 用 glDrawElements 来绘制，mVertexIndexBuffer 指定了顶点绘制顺序
             //GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
             //        GLES20.GL_UNSIGNED_SHORT, mVertexIndexBuffer);
